@@ -14,25 +14,28 @@ namespace Silk.Net.OpenGLtest1
         private static IWindow window;
         private static IInputContext input;
         private static GL gl;
-        private static uint program;
+        private static MyShader shader;
+        private static IKeyboard primaryKeyboard;
 
         private static uint vao;
         private static uint vbo;
 
         private static Vector2 screenSize = new(1280,720);
-        private static Matrix4X4<float> perspective;
+        private static Matrix4x4 perspective;
 
         private static float time;
 
-        private static Camera camera = new(1,1,0);
+        private static MyCamera camera = new(new Vector3(0,0,-3),screenSize);
         public static void Main(params string[] args)
         {
             WindowOptions options = WindowOptions.Default;
             options.Title = "test1";
             options.Size = new Vector2D<int>((int)screenSize.X,(int)screenSize.Y);
+            //options.WindowState = WindowState.Fullscreen;
             options.Samples = 4;
 
             window = Window.Create(options);
+            //window.WindowState = WindowState.Fullscreen;
 
             window.Load += OnLoad;
             window.Update += OnUpdate;
@@ -46,24 +49,13 @@ namespace Silk.Net.OpenGLtest1
             input = window.CreateInput();
             gl = window.CreateOpenGL();
 
-            perspective = Matrix4X4.CreatePerspectiveFieldOfView<float>( MyMath.DegToRad(90.0f), screenSize.X / screenSize.Y, 0.1f, 100f); 
-            Console.WriteLine(camera.GetViewportMatrix());
-            
+            primaryKeyboard = input.Keyboards.FirstOrDefault();
 
-            foreach (IMouse mouse in input.Mice) 
-            {
-                mouse.Click += (IMouse cursor,MouseButton button,System.Numerics.Vector2 pos) => { Console.WriteLine("clcicked"); };
-            }
+            perspective = camera.getPerspectiveMatrix();             
+
             gl.ClearColor(0.2f, 0.2f, 0.2f, 0.0f);
-            program = gl.CreateProgram();
-            
 
-            Shader vshader = GenerateShader("C:\\Users\\Burek\\source\\repos\\Silk.Net.OpenGLtest1\\Silk.Net.OpenGLtest1\\shaders\\VertexShader.glsl",
-                                            ShaderType.VertexShader);
-            Shader fshader = GenerateShader("C:\\Users\\Burek\\source\\repos\\Silk.Net.OpenGLtest1\\Silk.Net.OpenGLtest1\\shaders\\FragmentShader.glsl",
-                                            ShaderType.FragmentShader);
-
-            LoadShaders(vshader, fshader);
+            shader = new MyShader(gl, ".\\shaders\\VertexShader.glsl", ".\\shaders\\FragmentShader.glsl");
 
             vao = gl.GenVertexArray();
             vbo = gl.GenBuffer();
@@ -74,10 +66,25 @@ namespace Silk.Net.OpenGLtest1
 
             float[] quad =
             {
-                -0.5f, 0.5f,0.0f,0.0f,1.0f,0.0f, //top left
-                -0.5f,-0.5f,0.0f,1.0f,0.0f,0.0f, //bottom left
-                 0.5f, 0.5f,0.0f,0.0f,0.0f,1.0f, //top right
-                 0.5f,-0.5f,0.0f,1.0f,1.0f,1.0f  //bottom right
+
+
+                -1.0f, 1.0f,1.0f,1.0f,0.0f,1.0f, //top left
+                -1.0f,-1.0f,1.0f,0.0f,1.0f,1.0f, //bottom left
+                 1.0f, 1.0f,1.0f,1.0f,1.0f,0.0f, //top right
+                -1.0f,-1.0f,1.0f,0.0f,1.0f,1.0f, //bottom left
+                 1.0f, 1.0f,1.0f,1.0f,1.0f,0.0f, //top right
+                 1.0f,-1.0f,1.0f,0.0f,0.0f,0.0f,  //bottom right
+
+                -1.0f, 1.0f,0.0f,0.0f,1.0f,0.0f, //top left
+                -1.0f,-1.0f,0.0f,1.0f,0.0f,0.0f, //bottom left
+                 1.0f, 1.0f,0.0f,0.0f,0.0f,1.0f, //top right
+                -1.0f,-1.0f,0.0f,1.0f,0.0f,0.0f, //bottom left
+                 1.0f, 1.0f,0.0f,0.0f,0.0f,1.0f, //top right
+                 1.0f,-1.0f,0.0f,1.0f,1.0f,1.0f  //bottom right
+
+
+                
+
 
             };
 
@@ -99,44 +106,19 @@ namespace Silk.Net.OpenGLtest1
 
         }
 
-     
-
-        private static Shader GenerateShader(string filePath, ShaderType type)
-        {
-            uint shader = gl.CreateShader(type);
-            gl.ShaderSource(shader,File.ReadAllText(filePath));
-            gl.CompileShader(shader);
-
-            string infoLog = gl.GetShaderInfoLog(shader);
-            if (!string.IsNullOrWhiteSpace(infoLog))
-            {
-                Console.WriteLine($"Error compiling {type} {infoLog}");
-            }
-
-            gl.AttachShader(program, shader);
-
-            return new Shader { id = shader };
-
-        }
-
-        private static unsafe void LoadShaders(Shader vertexShader, Shader fragmentShader)
-        {
-
-            gl.LinkProgram(program);
-            gl.DetachShader(program, vertexShader.id);
-            gl.DetachShader(program, fragmentShader.id);
-            gl.DeleteShader(vertexShader.id);
-            gl.DeleteShader(fragmentShader.id);
-            gl.UseProgram(program);
-            gl.Uniform2(gl.GetUniformLocation(program, "screenSize"), ref screenSize);
-
-        }
 
 
         private static void OnUpdate(double d)
         {
             //no openGL
             time = DateTime.Now.Millisecond;
+            if (primaryKeyboard.IsKeyPressed(Key.W)) camera.position.Z += (float)d;
+            if (primaryKeyboard.IsKeyPressed(Key.S)) camera.position.Z -= (float)d;
+            if (primaryKeyboard.IsKeyPressed(Key.A)) camera.position.X += (float)d;
+            if (primaryKeyboard.IsKeyPressed(Key.D)) camera.position.X -= (float)d;
+            if (primaryKeyboard.IsKeyPressed(Key.ShiftLeft)) camera.position.Y -= (float)d;
+            if (primaryKeyboard.IsKeyPressed(Key.Space)) camera.position.Y += (float)d;
+
         }
 
         private static unsafe void OnRender(double d)
@@ -145,19 +127,21 @@ namespace Silk.Net.OpenGLtest1
 
 
             gl.BindVertexArray(vao);
-        
-            
-            gl.Uniform1(gl.GetUniformLocation(program, "time"), time);
+
+            Matrix4x4 p = camera.getPerspectiveMatrix();
+            Matrix4x4 v = camera.getViewportMatrix();
+            //v = Matrix4x4.Transpose(v);
+
+            //gl.Uniform1(gl.GetUniformLocation(program, "time"), time);
+            shader.setUniform("time", time);
+            shader.setUniform("perspective", p);
+            shader.setUniform("viewport",v);
 
             gl.LineWidth(20);
-            gl.DrawArrays(GLEnum.TriangleStrip, 0, 4);
+            gl.DrawArrays(GLEnum.Triangles, 0, 12);
             gl.BindVertexArray(0);
         
         }
-    }
 
-    public struct Shader
-    {
-        public uint id;
     }
 }

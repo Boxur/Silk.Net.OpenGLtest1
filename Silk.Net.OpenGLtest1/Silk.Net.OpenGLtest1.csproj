@@ -12,4 +12,13 @@
     <PackageReference Include="Silk.NET" Version="2.21.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="shaders\FragmentShader.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="shaders\VertexShader.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
