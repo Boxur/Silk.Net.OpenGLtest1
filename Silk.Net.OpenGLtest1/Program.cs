@@ -23,7 +23,7 @@ namespace Silk.Net.OpenGLtest1
         private static Vector2 screenSize = new(1280,720);
         private static Matrix4x4 perspective;
 
-        private static float time;
+        private static float time = 0;
 
         private static MyCamera camera = new(new Vector3(0,0,-3),screenSize);
         public static void Main(params string[] args)
@@ -48,6 +48,7 @@ namespace Silk.Net.OpenGLtest1
         {
             input = window.CreateInput();
             gl = window.CreateOpenGL();
+
 
             primaryKeyboard = input.Keyboards.FirstOrDefault();
 
@@ -75,16 +76,12 @@ namespace Silk.Net.OpenGLtest1
                  1.0f, 1.0f,1.0f,1.0f,1.0f,0.0f, //top right
                  1.0f,-1.0f,1.0f,0.0f,0.0f,0.0f,  //bottom right
 
-                -1.0f, 1.0f,0.0f,0.0f,1.0f,0.0f, //top left
-                -1.0f,-1.0f,0.0f,1.0f,0.0f,0.0f, //bottom left
-                 1.0f, 1.0f,0.0f,0.0f,0.0f,1.0f, //top right
-                -1.0f,-1.0f,0.0f,1.0f,0.0f,0.0f, //bottom left
-                 1.0f, 1.0f,0.0f,0.0f,0.0f,1.0f, //top right
-                 1.0f,-1.0f,0.0f,1.0f,1.0f,1.0f  //bottom right
-
-
-                
-
+                -1.0f, 1.0f,-1.0f,0.0f,1.0f,0.0f, //top left
+                 1.0f, 1.0f,-1.0f,0.0f,0.0f,1.0f, //top right
+                -1.0f,-1.0f,-1.0f,1.0f,0.0f,0.0f, //bottom left
+                -1.0f,-1.0f,-1.0f,1.0f,0.0f,0.0f, //bottom left
+                 1.0f,-1.0f,-1.0f,1.0f,1.0f,1.0f, //bottom right
+                 1.0f, 1.0f,-1.0f,0.0f,0.0f,1.0f, //top right
 
             };
 
@@ -111,33 +108,34 @@ namespace Silk.Net.OpenGLtest1
         private static void OnUpdate(double d)
         {
             //no openGL
-            time = DateTime.Now.Millisecond;
-            if (primaryKeyboard.IsKeyPressed(Key.W)) camera.position.Z += (float)d;
-            if (primaryKeyboard.IsKeyPressed(Key.S)) camera.position.Z -= (float)d;
-            if (primaryKeyboard.IsKeyPressed(Key.A)) camera.position.X += (float)d;
-            if (primaryKeyboard.IsKeyPressed(Key.D)) camera.position.X -= (float)d;
-            if (primaryKeyboard.IsKeyPressed(Key.ShiftLeft)) camera.position.Y -= (float)d;
-            if (primaryKeyboard.IsKeyPressed(Key.Space)) camera.position.Y += (float)d;
+            time+=(float)d; 
+            Vector3 move = Vector3.Zero;
+            if (primaryKeyboard.IsKeyPressed(Key.W)) move += camera.forward - camera.position;
+            if (primaryKeyboard.IsKeyPressed(Key.S)) move -= camera.forward - camera.position;
+            if (primaryKeyboard.IsKeyPressed(Key.A)) move += camera.right;
+            if (primaryKeyboard.IsKeyPressed(Key.D)) move -= camera.right;
+            if (primaryKeyboard.IsKeyPressed(Key.Up)) camera.pitch += (float)d*10;
+            if (primaryKeyboard.IsKeyPressed(Key.Down)) camera.pitch -= (float)d*10;
+            if (primaryKeyboard.IsKeyPressed(Key.ShiftLeft)) move.Y -= 1;
+            if (primaryKeyboard.IsKeyPressed(Key.Space)) move.Y += 1;
+            if(move!=Vector3.Zero) move = Vector3.Normalize(move)*(float)d;
+            camera.position += move;
 
         }
 
         private static unsafe void OnRender(double d)
         {
-            gl.Clear(ClearBufferMask.ColorBufferBit);
+            gl.Enable(EnableCap.DepthTest);
+            gl.Clear(ClearBufferMask.ColorBufferBit|ClearBufferMask.DepthBufferBit);
 
 
-            gl.BindVertexArray(vao);
+            gl.BindVertexArray(vao);       
 
-            Matrix4x4 p = camera.getPerspectiveMatrix();
-            Matrix4x4 v = camera.getViewportMatrix();
-            //v = Matrix4x4.Transpose(v);
-
-            //gl.Uniform1(gl.GetUniformLocation(program, "time"), time);
             shader.setUniform("time", time);
-            shader.setUniform("perspective", p);
-            shader.setUniform("viewport",v);
+            shader.setUniform("perspective", camera.getPerspectiveMatrix());
+            shader.setUniform("viewport", camera.getViewportMatrix());
+            shader.setUniform("rotation", Matrix4x4.CreateRotationY(0 * MathF.PI));
 
-            gl.LineWidth(20);
             gl.DrawArrays(GLEnum.Triangles, 0, 12);
             gl.BindVertexArray(0);
         

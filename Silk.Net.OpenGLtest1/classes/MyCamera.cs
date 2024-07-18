@@ -9,6 +9,10 @@ namespace Silk.Net.OpenGLtest1.classes
         public Vector3 position;
         public Vector2 screenSize;
 
+        public Vector3 forward;
+        public Vector3 up;
+        public Vector3 right;
+
         //all in degrees!!!
         public float yaw;
         public float pitch;
@@ -33,15 +37,16 @@ namespace Silk.Net.OpenGLtest1.classes
             float yawRad = MyMath.DegToRad(yaw);
             float pitchRad = MyMath.DegToRad(pitch);
 
-            Vector3 target  = new(MathF.Sin(yawRad)*MathF.Sin(pitchRad)+position.X,MathF.Cos(yawRad)*MathF.Sin(pitchRad)+position.Y,MathF.Cos(pitchRad)+position.Z);
-            pitchRad += MathF.PI / 2;
-            Vector3 up = new(MathF.Sin(yawRad) * MathF.Sin(pitchRad), MathF.Cos(yawRad) * MathF.Sin(pitchRad), MathF.Cos(pitchRad));
-            return Matrix4x4.CreateLookAt(position,target,up);
+            forward  = new(MathF.Sin(yawRad)*MathF.Sin(pitchRad)+position.X,MathF.Cos(yawRad)*MathF.Sin(pitchRad)+position.Y,MathF.Cos(pitchRad)+position.Z);
+            //pitchRad += ;
+            up = new(MathF.Sin(yawRad) * MathF.Sin(pitchRad+ MathF.PI / 2), MathF.Cos(yawRad) * MathF.Sin(pitchRad + MathF.PI / 2), MathF.Cos(pitchRad + MathF.PI / 2));
+            right = new(MathF.Sin(yawRad + MathF.PI / 2), MathF.Cos(yawRad + MathF.PI / 2), 0.0f);
+            return Matrix4x4.CreateLookAt(position,forward,up);
         }
 
         public Matrix4x4 getPerspectiveMatrix()
         {
-            return Matrix4x4.CreatePerspectiveFieldOfView(MyMath.DegToRad(fov), screenSize.X / screenSize.Y, 0.1f, 100f);
+            return Matrix4x4.CreatePerspectiveFieldOfView(MyMath.DegToRad(fov), screenSize.X / screenSize.Y, 0.0001f, 100f);
         }
     }
 }
