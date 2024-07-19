@@ -99,6 +99,8 @@ namespace Silk.Net.OpenGLtest1
                 -1.0f,-1.0f,-1.0f,0.0f,0.0f,0.0f,
 
 
+
+
             };
 
 
@@ -121,28 +123,29 @@ namespace Silk.Net.OpenGLtest1
 
 
 
-        private static void OnUpdate(double d)
+        private static void OnUpdate(double deltaTime)
         {
             //no openGL
-            time+=(float)d; 
+            time+=(float)deltaTime; 
             Vector3 move = Vector3.Zero;
             if (primaryKeyboard.IsKeyPressed(Key.W)) { move += camera.forward; move.Y = 0; }
             if (primaryKeyboard.IsKeyPressed(Key.S)) { move -= camera.forward; move.Y = 0; }
-            if (primaryKeyboard.IsKeyPressed(Key.A)) { move += camera.right; move.Y = 0; }
-            if (primaryKeyboard.IsKeyPressed(Key.D)) { move -= camera.right; move.Y = 0; }
-            if (primaryKeyboard.IsKeyPressed(Key.Up)) camera.pitch += (float)d*10;
-            if (primaryKeyboard.IsKeyPressed(Key.Down)) camera.pitch -= (float)d*10;
-            if (primaryKeyboard.IsKeyPressed(Key.Left)) camera.yaw -= (float)d*10;
-            if (primaryKeyboard.IsKeyPressed(Key.Right)) camera.yaw += (float)d*10;
-            if (primaryKeyboard.IsKeyPressed(Key.ShiftLeft)) move.Y -= 1;
-            if (primaryKeyboard.IsKeyPressed(Key.Space)) move.Y += 1;
+            if (primaryKeyboard.IsKeyPressed(Key.A)) { move -= camera.right; move.Y = 0; }
+            if (primaryKeyboard.IsKeyPressed(Key.D)) { move += camera.right; move.Y = 0; }
+            if (primaryKeyboard.IsKeyPressed(Key.Up)) camera.pitch += (float)deltaTime*10;
+            if (primaryKeyboard.IsKeyPressed(Key.Down)) camera.pitch -= (float)deltaTime*10;
+            if (primaryKeyboard.IsKeyPressed(Key.Left)) camera.yaw -= (float)deltaTime*10;
+            if (primaryKeyboard.IsKeyPressed(Key.Right)) camera.yaw += (float)deltaTime*10;
+            if (primaryKeyboard.IsKeyPressed(Key.ShiftLeft)) move.Y += 1;
+            if (primaryKeyboard.IsKeyPressed(Key.Space)) move.Y -= 1;
             if (primaryKeyboard.IsKeyPressed(Key.Escape)) window.Close();
-            if(move!=Vector3.Zero) move = Vector3.Normalize(move)*(float)d;
+            if(move!=Vector3.Zero) move = Vector3.Normalize(move)*(float)deltaTime*5;
             camera.position += move;
+
 
         }
 
-        private static unsafe void OnRender(double d)
+        private static unsafe void OnRender(double deltaTime)
         {
             gl.Enable(EnableCap.DepthTest);
             gl.Clear(ClearBufferMask.ColorBufferBit|ClearBufferMask.DepthBufferBit);

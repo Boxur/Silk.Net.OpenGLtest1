@@ -20,7 +20,7 @@ namespace Silk.Net.OpenGLtest1.classes
 
         public MyCamera(Vector3 position,Vector2 screenSize)
         {
-            setValues(position, screenSize,0,0,45.0f);
+            setValues(position, screenSize,0,90,45.0f);
         }
 
         public void setValues(Vector3 position,Vector2 screenSize,float yaw,float pitch,float fov)
@@ -37,10 +37,10 @@ namespace Silk.Net.OpenGLtest1.classes
             float yawRad = MyMath.DegToRad(yaw);
             float pitchRad = MyMath.DegToRad(pitch);
 
-            forward  = new(MathF.Sin(yawRad)*MathF.Sin(pitchRad),MathF.Cos(yawRad)*MathF.Sin(pitchRad),MathF.Cos(pitchRad));
+            forward  = new(MathF.Sin(yawRad)*MathF.Sin(pitchRad),MathF.Cos(pitchRad), MathF.Cos(yawRad) * MathF.Sin(pitchRad));
             //pitchRad += ;
-            up = new(MathF.Sin(yawRad) * MathF.Sin(pitchRad+ MathF.PI / 2), MathF.Cos(yawRad) * MathF.Sin(pitchRad + MathF.PI / 2), MathF.Cos(pitchRad + MathF.PI / 2));
-            right = new(MathF.Sin(yawRad + MathF.PI / 2), MathF.Cos(yawRad + MathF.PI / 2), 0.0f);
+            up = new(MathF.Sin(yawRad) * MathF.Sin(pitchRad+ MathF.PI / 2), MathF.Cos(pitchRad + MathF.PI / 2), MathF.Cos(yawRad) * MathF.Sin(pitchRad + MathF.PI / 2));
+            right = new(MathF.Sin(yawRad + MathF.PI / 2), 0.0f, MathF.Cos(yawRad + MathF.PI / 2));
             return Matrix4x4.CreateLookAt(position,forward+position,up);
         }
 
