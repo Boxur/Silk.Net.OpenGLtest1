@@ -31,10 +31,11 @@ namespace Silk.Net.OpenGLtest1
             WindowOptions options = WindowOptions.Default;
             options.Title = "test1";
             options.Size = new Vector2D<int>((int)screenSize.X,(int)screenSize.Y);
-            //options.WindowState = WindowState.Fullscreen;
+            options.WindowState = WindowState.Fullscreen;
             options.Samples = 4;
 
             window = Window.Create(options);
+            screenSize = (Vector2)window.GetFullSize();
             //window.WindowState = WindowState.Fullscreen;
 
             window.Load += OnLoad;
@@ -47,7 +48,8 @@ namespace Silk.Net.OpenGLtest1
         private static unsafe void OnLoad()
         {
             input = window.CreateInput();
-            gl = window.CreateOpenGL();
+            gl = GL.GetApi(window);
+            gl.Viewport(window.GetFullSize());
 
 
             primaryKeyboard = input.Keyboards.FirstOrDefault();
@@ -67,21 +69,35 @@ namespace Silk.Net.OpenGLtest1
 
             float[] quad =
             {
+    
+                -1.0f, 1.0f,-1.0f,0.0f,1.0f,0.0f,
+                -1.0f,-1.0f,-1.0f,0.0f,0.0f,0.0f,
+                 1.0f, 1.0f,-1.0f,1.0f,1.0f,0.0f,
+                -1.0f,-1.0f,-1.0f,0.0f,0.0f,0.0f,
+                 1.0f, 1.0f,-1.0f,1.0f,1.0f,0.0f,
+                 1.0f,-1.0f,-1.0f,1.0f,0.0f,0.0f,
 
+                 1.0f, 1.0f,-1.0f,1.0f,1.0f,0.0f,
+                 1.0f,-1.0f,-1.0f,1.0f,0.0f,0.0f,
+                 1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f,
+                 1.0f,-1.0f,-1.0f,1.0f,0.0f,0.0f,
+                 1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f,
+                 1.0f,-1.0f, 1.0f,1.0f,0.0f,1.0f,
 
-                -1.0f, 1.0f,1.0f,1.0f,0.0f,1.0f, //top left
-                -1.0f,-1.0f,1.0f,0.0f,1.0f,1.0f, //bottom left
-                 1.0f, 1.0f,1.0f,1.0f,1.0f,0.0f, //top right
-                -1.0f,-1.0f,1.0f,0.0f,1.0f,1.0f, //bottom left
-                 1.0f, 1.0f,1.0f,1.0f,1.0f,0.0f, //top right
-                 1.0f,-1.0f,1.0f,0.0f,0.0f,0.0f,  //bottom right
+                 1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f,
+                 1.0f,-1.0f, 1.0f,1.0f,0.0f,1.0f,
+                -1.0f, 1.0f, 1.0f,0.0f,1.0f,1.0f,
+                 1.0f,-1.0f, 1.0f,1.0f,0.0f,1.0f,
+                -1.0f, 1.0f, 1.0f,0.0f,1.0f,1.0f,
+                -1.0f,-1.0f, 1.0f,0.0f,0.0f,1.0f,
 
-                -1.0f, 1.0f,-1.0f,0.0f,1.0f,0.0f, //top left
-                 1.0f, 1.0f,-1.0f,0.0f,0.0f,1.0f, //top right
-                -1.0f,-1.0f,-1.0f,1.0f,0.0f,0.0f, //bottom left
-                -1.0f,-1.0f,-1.0f,1.0f,0.0f,0.0f, //bottom left
-                 1.0f,-1.0f,-1.0f,1.0f,1.0f,1.0f, //bottom right
-                 1.0f, 1.0f,-1.0f,0.0f,0.0f,1.0f, //top right
+                -1.0f, 1.0f, 1.0f,0.0f,1.0f,1.0f,
+                -1.0f,-1.0f, 1.0f,0.0f,0.0f,1.0f,
+                -1.0f, 1.0f,-1.0f,0.0f,1.0f,0.0f,
+                -1.0f,-1.0f, 1.0f,0.0f,0.0f,1.0f,
+                -1.0f, 1.0f,-1.0f,0.0f,1.0f,0.0f,
+                -1.0f,-1.0f,-1.0f,0.0f,0.0f,0.0f,
+
 
             };
 
@@ -110,14 +126,17 @@ namespace Silk.Net.OpenGLtest1
             //no openGL
             time+=(float)d; 
             Vector3 move = Vector3.Zero;
-            if (primaryKeyboard.IsKeyPressed(Key.W)) move += camera.forward - camera.position;
-            if (primaryKeyboard.IsKeyPressed(Key.S)) move -= camera.forward - camera.position;
-            if (primaryKeyboard.IsKeyPressed(Key.A)) move += camera.right;
-            if (primaryKeyboard.IsKeyPressed(Key.D)) move -= camera.right;
+            if (primaryKeyboard.IsKeyPressed(Key.W)) { move += camera.forward; move.Y = 0; }
+            if (primaryKeyboard.IsKeyPressed(Key.S)) { move -= camera.forward; move.Y = 0; }
+            if (primaryKeyboard.IsKeyPressed(Key.A)) { move += camera.right; move.Y = 0; }
+            if (primaryKeyboard.IsKeyPressed(Key.D)) { move -= camera.right; move.Y = 0; }
             if (primaryKeyboard.IsKeyPressed(Key.Up)) camera.pitch += (float)d*10;
             if (primaryKeyboard.IsKeyPressed(Key.Down)) camera.pitch -= (float)d*10;
+            if (primaryKeyboard.IsKeyPressed(Key.Left)) camera.yaw -= (float)d*10;
+            if (primaryKeyboard.IsKeyPressed(Key.Right)) camera.yaw += (float)d*10;
             if (primaryKeyboard.IsKeyPressed(Key.ShiftLeft)) move.Y -= 1;
             if (primaryKeyboard.IsKeyPressed(Key.Space)) move.Y += 1;
+            if (primaryKeyboard.IsKeyPressed(Key.Escape)) window.Close();
             if(move!=Vector3.Zero) move = Vector3.Normalize(move)*(float)d;
             camera.position += move;
 
@@ -136,7 +155,7 @@ namespace Silk.Net.OpenGLtest1
             shader.setUniform("viewport", camera.getViewportMatrix());
             shader.setUniform("rotation", Matrix4x4.CreateRotationY(0 * MathF.PI));
 
-            gl.DrawArrays(GLEnum.Triangles, 0, 12);
+            gl.DrawArrays(GLEnum.Triangles, 0, 36);
             gl.BindVertexArray(0);
         
         }
