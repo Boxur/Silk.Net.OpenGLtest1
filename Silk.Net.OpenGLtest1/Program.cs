@@ -19,6 +19,7 @@ namespace Silk.Net.OpenGLtest1
 
         private static uint vao;
         private static uint vbo;
+        private static uint ebo;
 
         private static Vector2 screenSize = new(1280,720);
         private static Matrix4x4 perspective;
@@ -47,66 +48,71 @@ namespace Silk.Net.OpenGLtest1
 
         private static unsafe void OnLoad()
         {
-            input = window.CreateInput();
             gl = GL.GetApi(window);
             gl.Viewport(window.GetFullSize());
 
-
+            input = window.CreateInput();
             primaryKeyboard = input.Keyboards.FirstOrDefault();
-
-            perspective = camera.getPerspectiveMatrix();             
 
             gl.ClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 
             shader = new MyShader(gl, ".\\shaders\\VertexShader.glsl", ".\\shaders\\FragmentShader.glsl");
 
-            vao = gl.GenVertexArray();
-            vbo = gl.GenBuffer();
+            
 
-            gl.BindVertexArray(vao);
+            
 
-            gl.BindBuffer(GLEnum.ArrayBuffer, vbo);
-
-            float[] quad =
+            float[] vertices =
             {
     
-                -1.0f, 1.0f,-1.0f,0.0f,1.0f,0.0f,
                 -1.0f,-1.0f,-1.0f,0.0f,0.0f,0.0f,
-                 1.0f, 1.0f,-1.0f,1.0f,1.0f,0.0f,
-                -1.0f,-1.0f,-1.0f,0.0f,0.0f,0.0f,
-                 1.0f, 1.0f,-1.0f,1.0f,1.0f,0.0f,
                  1.0f,-1.0f,-1.0f,1.0f,0.0f,0.0f,
-
-                 1.0f, 1.0f,-1.0f,1.0f,1.0f,0.0f,
-                 1.0f,-1.0f,-1.0f,1.0f,0.0f,0.0f,
-                 1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f,
-                 1.0f,-1.0f,-1.0f,1.0f,0.0f,0.0f,
-                 1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f,
                  1.0f,-1.0f, 1.0f,1.0f,0.0f,1.0f,
-
-                 1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f,
-                 1.0f,-1.0f, 1.0f,1.0f,0.0f,1.0f,
-                -1.0f, 1.0f, 1.0f,0.0f,1.0f,1.0f,
-                 1.0f,-1.0f, 1.0f,1.0f,0.0f,1.0f,
-                -1.0f, 1.0f, 1.0f,0.0f,1.0f,1.0f,
-                -1.0f,-1.0f, 1.0f,0.0f,0.0f,1.0f,
-
-                -1.0f, 1.0f, 1.0f,0.0f,1.0f,1.0f,
                 -1.0f,-1.0f, 1.0f,0.0f,0.0f,1.0f,
                 -1.0f, 1.0f,-1.0f,0.0f,1.0f,0.0f,
-                -1.0f,-1.0f, 1.0f,0.0f,0.0f,1.0f,
-                -1.0f, 1.0f,-1.0f,0.0f,1.0f,0.0f,
-                -1.0f,-1.0f,-1.0f,0.0f,0.0f,0.0f,
-
-
-
+                 1.0f, 1.0f,-1.0f,1.0f,1.0f,0.0f,
+                 1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f,
+                -1.0f, 1.0f, 1.0f,0.0f,1.0f,1.0f,
 
             };
 
-
-            fixed (float* pQuad = &quad[0])
+            uint[] indices =
             {
-                gl.BufferData(GLEnum.ArrayBuffer, sizeof(float) * (nuint)quad.Length, pQuad, GLEnum.StaticDraw);
+                0,4,1, //front
+                4,1,5,
+
+                1,5,2, //right
+                5,2,6,
+
+                2,6,3, //back
+                6,3,7,
+
+                3,7,0, //left
+                7,0,4,
+
+                4,5,6, //bottom
+                4,6,7,
+
+                0,1,2, //top
+                0,2,3
+
+            };
+
+            vao = gl.GenVertexArray();
+            gl.BindVertexArray(vao);
+
+            vbo = gl.GenBuffer();
+            gl.BindBuffer(GLEnum.ArrayBuffer, vbo);
+            fixed (void* p = &vertices[0])
+            {
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(float) * vertices.Length), p, GLEnum.StaticDraw);
+            }
+
+            ebo = gl.GenBuffer();
+            gl.BindBuffer(GLEnum.ElementArrayBuffer, ebo);
+            fixed (void* p = &indices[0])
+            {
+                gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(sizeof(uint) * indices.Length), p, GLEnum.StaticDraw);
             }
 
             gl.VertexAttribPointer(0, 3, GLEnum.Float, false, 6 * sizeof(float), 0);
@@ -117,6 +123,8 @@ namespace Silk.Net.OpenGLtest1
 
             gl.BindBuffer(GLEnum.ArrayBuffer, 0);
             gl.BindVertexArray(0);
+
+            //gl.BindBuffer(GLEnum.ElementArrayBuffer, 0);
 
 
         }
@@ -130,12 +138,16 @@ namespace Silk.Net.OpenGLtest1
             Vector3 move = Vector3.Zero;
             if (primaryKeyboard.IsKeyPressed(Key.W)) { move += camera.forward; move.Y = 0; }
             if (primaryKeyboard.IsKeyPressed(Key.S)) { move -= camera.forward; move.Y = 0; }
+            if (move != Vector3.Zero) move = Vector3.Normalize(move);
             if (primaryKeyboard.IsKeyPressed(Key.A)) { move -= camera.right; move.Y = 0; }
             if (primaryKeyboard.IsKeyPressed(Key.D)) { move += camera.right; move.Y = 0; }
-            if (primaryKeyboard.IsKeyPressed(Key.Up)) camera.pitch += (float)deltaTime*10;
-            if (primaryKeyboard.IsKeyPressed(Key.Down)) camera.pitch -= (float)deltaTime*10;
-            if (primaryKeyboard.IsKeyPressed(Key.Left)) camera.yaw -= (float)deltaTime*10;
-            if (primaryKeyboard.IsKeyPressed(Key.Right)) camera.yaw += (float)deltaTime*10;
+            if (move != Vector3.Zero) move = Vector3.Normalize(move);
+            if (primaryKeyboard.IsKeyPressed(Key.Up)) camera.pitch += (float)deltaTime*50;
+            if (primaryKeyboard.IsKeyPressed(Key.Down)) camera.pitch -= (float)deltaTime* 50;
+            if(camera.pitch<0.0001f) camera.pitch = 0.0001f;
+            if (camera.pitch > 179.9999f) camera.pitch = 179.9999f;
+            if (primaryKeyboard.IsKeyPressed(Key.Left)) camera.yaw -= (float)deltaTime* 50;
+            if (primaryKeyboard.IsKeyPressed(Key.Right)) camera.yaw += (float)deltaTime* 50;
             if (primaryKeyboard.IsKeyPressed(Key.ShiftLeft)) move.Y += 1;
             if (primaryKeyboard.IsKeyPressed(Key.Space)) move.Y -= 1;
             if (primaryKeyboard.IsKeyPressed(Key.Escape)) window.Close();
@@ -158,7 +170,7 @@ namespace Silk.Net.OpenGLtest1
             shader.setUniform("viewport", camera.getViewportMatrix());
             shader.setUniform("rotation", Matrix4x4.CreateRotationY(0 * MathF.PI));
 
-            gl.DrawArrays(GLEnum.Triangles, 0, 36);
+            gl.DrawElements(GLEnum.Triangles, 36, DrawElementsType.UnsignedInt, null);
             gl.BindVertexArray(0);
         
         }

@@ -20,7 +20,7 @@ namespace Silk.Net.OpenGLtest1.classes
 
         public MyCamera(Vector3 position,Vector2 screenSize)
         {
-            setValues(position, screenSize,0,90,45.0f);
+            setValues(position, screenSize,0,90,90);
         }
 
         public void setValues(Vector3 position,Vector2 screenSize,float yaw,float pitch,float fov)
