@@ -1,8 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Numerics;
+﻿using System.Numerics;
 using Silk.Net.OpenGLtest1.classes;
-using Silk.NET.GLFW;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
@@ -15,8 +12,10 @@ namespace Silk.Net.OpenGLtest1
         private static IWindow window;
         private static IInputContext input;
         private static GL gl;
-        private static MyShader shader;
+        private static ShaderHelper shader;
+
         private static IKeyboard primaryKeyboard;
+        private static IMouse primaryMouse;
 
         private static uint vao;
         private static uint vbo;
@@ -27,8 +26,8 @@ namespace Silk.Net.OpenGLtest1
 
         private static float time = 0;
 
-        private static MyCamera camera = new(new Vector3(0,0,-3),screenSize);
-        private static Vector2 mouseSensitivity = new(0.1f, 0.1f);
+
+        private static Player player = new Player();
         public static void Main(params string[] args)
         {
             WindowOptions options = WindowOptions.Default;
@@ -42,29 +41,28 @@ namespace Silk.Net.OpenGLtest1
             window.Load += OnLoad;
             window.Update += OnUpdate;
             window.Render += OnRender;
+            window.Position = new Vector2D<int>(0,0);
 
             window.Run();
         }
 
         private static unsafe void OnLoad()
         {
+            player.camera = new Camera(new Vector3(0, 0, -3), screenSize);
             gl = GL.GetApi(window);
             gl.Viewport(window.GetFullSize());
             screenSize = (Vector2)window.GetFullSize();
 
-
             input = window.CreateInput();
-            input.Mice[0].Cursor.CursorMode = CursorMode.Hidden;
             primaryKeyboard = input.Keyboards.FirstOrDefault();
+            primaryMouse = input.Mice.FirstOrDefault();
+            primaryMouse.Cursor.CursorMode = CursorMode.Hidden;
+            primaryMouse.Position = screenSize / 2;
 
             gl.ClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 
-            shader = new MyShader(gl, ".\\shaders\\VertexShader.glsl", ".\\shaders\\FragmentShader.glsl");
-
+            shader = new ShaderHelper(gl, ".\\shaders\\VertexShader.glsl", ".\\shaders\\FragmentShader.glsl");
             
-
-            
-
             float[] vertices =
             {
     
@@ -98,7 +96,6 @@ namespace Silk.Net.OpenGLtest1
 
                 0,1,2, //top
                 0,2,3
-
             };
 
             vao = gl.GenVertexArray();
@@ -126,12 +123,8 @@ namespace Silk.Net.OpenGLtest1
 
             gl.BindBuffer(GLEnum.ArrayBuffer, 0);
             gl.BindVertexArray(0);
-
-            //gl.BindBuffer(GLEnum.ElementArrayBuffer, 0);
-
-
+            gl.BindBuffer(GLEnum.ElementArrayBuffer, 0);
         }
-
 
 
         private static void OnUpdate(double deltaTime)
@@ -139,39 +132,11 @@ namespace Silk.Net.OpenGLtest1
             //no openGL
             time+=(float)deltaTime;
 
-            HandleKeybdEvents(deltaTime);
-            HandleMouseEvents();
+            player.HandleMouseEvents(primaryMouse.Position, screenSize);
+            player.HandleKeybdEvents(primaryKeyboard, deltaTime,window);
 
-        }
+            primaryMouse.Position = screenSize / 2;
 
-
-        private static void HandleMouseEvents()
-        {
-
-            camera.pitch += (input.Mice[0].Position.Y - screenSize.Y / 2) * -mouseSensitivity.Y;
-            camera.yaw += (input.Mice[0].Position.X - screenSize.X / 2) * mouseSensitivity.X;
-            if (camera.pitch < 0.0001f) camera.pitch = 0.0001f;
-            if (camera.pitch > 179.9999f) camera.pitch = 179.9999f;
-            input.Mice[0].Position = screenSize / 2;
-            
-        }
-
-        private static void HandleKeybdEvents(double deltaTime)
-        {
-            Vector3 move = Vector3.Zero;
-            if (primaryKeyboard.IsKeyPressed(Key.W)) move += camera.forward;
-            if (primaryKeyboard.IsKeyPressed(Key.S)) move -= camera.forward;
-            move.Y = 0;
-            if (move != Vector3.Zero) move = Vector3.Normalize(move);
-            if (primaryKeyboard.IsKeyPressed(Key.A)) move -= camera.right;
-            if (primaryKeyboard.IsKeyPressed(Key.D)) move += camera.right;
-            move.Y = 0;
-            if (move != Vector3.Zero) move = Vector3.Normalize(move);
-            if (primaryKeyboard.IsKeyPressed(Key.ShiftLeft)) move.Y += 1;
-            if (primaryKeyboard.IsKeyPressed(Key.Space)) move.Y -= 1;
-            if (primaryKeyboard.IsKeyPressed(Key.Escape)) window.Close();
-            if (move != Vector3.Zero) move = Vector3.Normalize(move) * (float)deltaTime * 5;
-            camera.position += move;
         }
 
         private static unsafe void OnRender(double deltaTime)
@@ -179,13 +144,11 @@ namespace Silk.Net.OpenGLtest1
             gl.Enable(EnableCap.DepthTest);
             gl.Clear(ClearBufferMask.ColorBufferBit|ClearBufferMask.DepthBufferBit);
 
-
             gl.BindVertexArray(vao);       
 
             shader.setUniform("time", time);
-            shader.setUniform("perspective", camera.getPerspectiveMatrix());
-            shader.setUniform("viewport", camera.getViewportMatrix());
-            shader.setUniform("rotation", Matrix4x4.CreateRotationY(0 * MathF.PI));
+            shader.setUniform("perspective", player.camera.getPerspectiveMatrix());
+            shader.setUniform("viewport", player.camera.getViewportMatrix());
 
             gl.DrawElements(GLEnum.Triangles, 36, DrawElementsType.UnsignedInt, null);
             gl.BindVertexArray(0);

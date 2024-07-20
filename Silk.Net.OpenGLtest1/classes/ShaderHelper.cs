@@ -1,20 +1,15 @@
 ﻿using Silk.NET.OpenGL;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using static Silk.NET.Core.Native.WinString;
 
 namespace Silk.Net.OpenGLtest1.classes
 {
-    internal class MyShader
+    internal class ShaderHelper
     {
         private GL gl;
         private uint program;
 
-        public MyShader(GL gl,string vertexShaderPath,string fragmentShaderPath)
+        public ShaderHelper(GL gl,string vertexShaderPath,string fragmentShaderPath)
         {
             this.gl = gl;
             program = this.gl.CreateProgram();

@@ -1,10 +1,9 @@
-﻿using Silk.NET.Maths;
-using System;
+﻿using System;
 using System.Numerics;
 
 namespace Silk.Net.OpenGLtest1.classes
 {
-    public class MyCamera
+    public class Camera
     {
         public Vector3 position;
         public Vector2 screenSize;
@@ -18,7 +17,7 @@ namespace Silk.Net.OpenGLtest1.classes
         public float pitch;
         public float fov;
 
-        public MyCamera(Vector3 position,Vector2 screenSize)
+        public Camera(Vector3 position,Vector2 screenSize)
         {
             setValues(position, screenSize,0,90,90);
         }
@@ -34,8 +33,8 @@ namespace Silk.Net.OpenGLtest1.classes
 
         public Matrix4x4 getViewportMatrix()
         {
-            float yawRad = MyMath.DegToRad(yaw);
-            float pitchRad = MyMath.DegToRad(pitch);
+            float yawRad = MathHelper.DegToRad(yaw);
+            float pitchRad = MathHelper.DegToRad(pitch);
 
             forward  = new(MathF.Sin(yawRad)*MathF.Sin(pitchRad),MathF.Cos(pitchRad), MathF.Cos(yawRad) * MathF.Sin(pitchRad));
             //pitchRad += ;
@@ -46,7 +45,7 @@ namespace Silk.Net.OpenGLtest1.classes
 
         public Matrix4x4 getPerspectiveMatrix()
         {
-            return Matrix4x4.CreatePerspectiveFieldOfView(MyMath.DegToRad(fov), screenSize.X / screenSize.Y, 0.0001f, 100f);
+            return Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.DegToRad(fov), screenSize.X / screenSize.Y, 0.0001f, 100f);
         }
     }
 }

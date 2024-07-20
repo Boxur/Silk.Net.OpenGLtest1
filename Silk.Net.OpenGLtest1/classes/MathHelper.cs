@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Silk.Net.OpenGLtest1.classes
 {
-    public class MyMath
+    public class MathHelper
     {
         public static float DegToRad(float deg)
         {
