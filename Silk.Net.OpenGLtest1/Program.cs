@@ -2,6 +2,7 @@
 using System.IO;
 using System.Numerics;
 using Silk.Net.OpenGLtest1.classes;
+using Silk.NET.GLFW;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
@@ -27,6 +28,7 @@ namespace Silk.Net.OpenGLtest1
         private static float time = 0;
 
         private static MyCamera camera = new(new Vector3(0,0,-3),screenSize);
+        private static Vector2 mouseSensitivity = new(0.1f, 0.1f);
         public static void Main(params string[] args)
         {
             WindowOptions options = WindowOptions.Default;
@@ -36,8 +38,6 @@ namespace Silk.Net.OpenGLtest1
             options.Samples = 4;
 
             window = Window.Create(options);
-            screenSize = (Vector2)window.GetFullSize();
-            //window.WindowState = WindowState.Fullscreen;
 
             window.Load += OnLoad;
             window.Update += OnUpdate;
@@ -50,8 +50,11 @@ namespace Silk.Net.OpenGLtest1
         {
             gl = GL.GetApi(window);
             gl.Viewport(window.GetFullSize());
+            screenSize = (Vector2)window.GetFullSize();
+
 
             input = window.CreateInput();
+            input.Mice[0].Cursor.CursorMode = CursorMode.Hidden;
             primaryKeyboard = input.Keyboards.FirstOrDefault();
 
             gl.ClearColor(0.2f, 0.2f, 0.2f, 0.0f);
@@ -134,27 +137,41 @@ namespace Silk.Net.OpenGLtest1
         private static void OnUpdate(double deltaTime)
         {
             //no openGL
-            time+=(float)deltaTime; 
-            Vector3 move = Vector3.Zero;
-            if (primaryKeyboard.IsKeyPressed(Key.W)) { move += camera.forward; move.Y = 0; }
-            if (primaryKeyboard.IsKeyPressed(Key.S)) { move -= camera.forward; move.Y = 0; }
-            if (move != Vector3.Zero) move = Vector3.Normalize(move);
-            if (primaryKeyboard.IsKeyPressed(Key.A)) { move -= camera.right; move.Y = 0; }
-            if (primaryKeyboard.IsKeyPressed(Key.D)) { move += camera.right; move.Y = 0; }
-            if (move != Vector3.Zero) move = Vector3.Normalize(move);
-            if (primaryKeyboard.IsKeyPressed(Key.Up)) camera.pitch += (float)deltaTime*50;
-            if (primaryKeyboard.IsKeyPressed(Key.Down)) camera.pitch -= (float)deltaTime* 50;
-            if(camera.pitch<0.0001f) camera.pitch = 0.0001f;
+            time+=(float)deltaTime;
+
+            HandleKeybdEvents(deltaTime);
+            HandleMouseEvents();
+
+        }
+
+
+        private static void HandleMouseEvents()
+        {
+
+            camera.pitch += (input.Mice[0].Position.Y - screenSize.Y / 2) * -mouseSensitivity.Y;
+            camera.yaw += (input.Mice[0].Position.X - screenSize.X / 2) * mouseSensitivity.X;
+            if (camera.pitch < 0.0001f) camera.pitch = 0.0001f;
             if (camera.pitch > 179.9999f) camera.pitch = 179.9999f;
-            if (primaryKeyboard.IsKeyPressed(Key.Left)) camera.yaw -= (float)deltaTime* 50;
-            if (primaryKeyboard.IsKeyPressed(Key.Right)) camera.yaw += (float)deltaTime* 50;
+            input.Mice[0].Position = screenSize / 2;
+            
+        }
+
+        private static void HandleKeybdEvents(double deltaTime)
+        {
+            Vector3 move = Vector3.Zero;
+            if (primaryKeyboard.IsKeyPressed(Key.W)) move += camera.forward;
+            if (primaryKeyboard.IsKeyPressed(Key.S)) move -= camera.forward;
+            move.Y = 0;
+            if (move != Vector3.Zero) move = Vector3.Normalize(move);
+            if (primaryKeyboard.IsKeyPressed(Key.A)) move -= camera.right;
+            if (primaryKeyboard.IsKeyPressed(Key.D)) move += camera.right;
+            move.Y = 0;
+            if (move != Vector3.Zero) move = Vector3.Normalize(move);
             if (primaryKeyboard.IsKeyPressed(Key.ShiftLeft)) move.Y += 1;
             if (primaryKeyboard.IsKeyPressed(Key.Space)) move.Y -= 1;
             if (primaryKeyboard.IsKeyPressed(Key.Escape)) window.Close();
-            if(move!=Vector3.Zero) move = Vector3.Normalize(move)*(float)deltaTime*5;
+            if (move != Vector3.Zero) move = Vector3.Normalize(move) * (float)deltaTime * 5;
             camera.position += move;
-
-
         }
 
         private static unsafe void OnRender(double deltaTime)
