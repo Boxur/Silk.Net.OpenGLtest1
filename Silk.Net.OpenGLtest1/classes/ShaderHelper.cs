@@ -9,12 +9,13 @@ namespace Silk.Net.OpenGLtest1.classes
         private GL gl;
         private uint program;
 
-        public ShaderHelper(GL gl,string vertexShaderPath,string fragmentShaderPath)
+        public ShaderHelper(GL gl,string vertexShaderPath,string geometryShaderPath,string fragmentShaderPath)
         {
             this.gl = gl;
             program = this.gl.CreateProgram();
 
             uint vShader = generateShader(vertexShaderPath,ShaderType.VertexShader);
+            uint gShader = generateShader(geometryShaderPath, ShaderType.GeometryShader);
             uint fShader = generateShader(fragmentShaderPath,ShaderType.FragmentShader);
 
             loadShaders(vShader,fShader);

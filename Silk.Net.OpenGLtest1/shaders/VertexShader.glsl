@@ -2,13 +2,16 @@
 layout (location = 0) in vec3 aPosition;
 layout (location = 1) in vec3 aColor;
 uniform mat4 perspective;
-uniform mat4 viewport;
-out vec4 vertexColor;
+uniform mat4 projection;
+
+out DATA
+{
+	vec3 color;
+} data_out;
     
 void main() 
 {
-    vertexColor = vec4(aColor.rgb, 1.0);
-    vec4 rotated = vec4(aPosition.xyz,1.0);
-    gl_Position = perspective*viewport*rotated;
+    gl_Position = vec4(aPosition.xyz,1.0);
+    data_out.color = aColor;
 
 }

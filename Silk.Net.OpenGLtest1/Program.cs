@@ -19,7 +19,6 @@ namespace Silk.Net.OpenGLtest1
 
         private static uint vao;
         private static uint vbo;
-        private static uint ebo;
 
         private static Vector2 screenSize = new(1280,720);
         private static Matrix4x4 perspective;
@@ -61,41 +60,14 @@ namespace Silk.Net.OpenGLtest1
 
             gl.ClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 
-            shader = new ShaderHelper(gl, ".\\shaders\\VertexShader.glsl", ".\\shaders\\FragmentShader.glsl");
+            shader = new ShaderHelper(gl, ".\\shaders\\VertexShader.glsl",".\\shaders\\GeometryShader.glsl", ".\\shaders\\FragmentShader.glsl");
             
-            float[] vertices =
+            int[] blocks =
             {
-    
-                -1.0f,-1.0f,-1.0f,0.0f,0.0f,0.0f,
-                 1.0f,-1.0f,-1.0f,1.0f,0.0f,0.0f,
-                 1.0f,-1.0f, 1.0f,1.0f,0.0f,1.0f,
-                -1.0f,-1.0f, 1.0f,0.0f,0.0f,1.0f,
-                -1.0f, 1.0f,-1.0f,0.0f,1.0f,0.0f,
-                 1.0f, 1.0f,-1.0f,1.0f,1.0f,0.0f,
-                 1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f,
-                -1.0f, 1.0f, 1.0f,0.0f,1.0f,1.0f,
 
-            };
+                 0,0,0,1,0,0,
+                 1,0,0,0,1,0,
 
-            uint[] indices =
-            {
-                0,4,1, //front
-                4,1,5,
-
-                1,5,2, //right
-                5,2,6,
-
-                2,6,3, //back
-                6,3,7,
-
-                3,7,0, //left
-                7,0,4,
-
-                4,5,6, //bottom
-                4,6,7,
-
-                0,1,2, //top
-                0,2,3
             };
 
             vao = gl.GenVertexArray();
@@ -103,27 +75,22 @@ namespace Silk.Net.OpenGLtest1
 
             vbo = gl.GenBuffer();
             gl.BindBuffer(GLEnum.ArrayBuffer, vbo);
-            fixed (void* p = &vertices[0])
+            fixed (void* p = &blocks[0])
             {
-                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(float) * vertices.Length), p, GLEnum.StaticDraw);
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(int) * blocks.Length), p, GLEnum.StaticDraw);
             }
 
-            ebo = gl.GenBuffer();
-            gl.BindBuffer(GLEnum.ElementArrayBuffer, ebo);
-            fixed (void* p = &indices[0])
-            {
-                gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(sizeof(uint) * indices.Length), p, GLEnum.StaticDraw);
-            }
 
-            gl.VertexAttribPointer(0, 3, GLEnum.Float, false, 6 * sizeof(float), 0);
+            gl.VertexAttribPointer(0, 3, GLEnum.Int, false, 6 * sizeof(int), 0);
             gl.EnableVertexAttribArray(0);
 
-            gl.VertexAttribPointer(1, 3, GLEnum.Float, false, 6 * sizeof(float), 3 * sizeof(float));
+            gl.VertexAttribPointer(1, 3, GLEnum.Int, false, 6 * sizeof(int), 3 * sizeof(int));
             gl.EnableVertexAttribArray(1);
 
             gl.BindBuffer(GLEnum.ArrayBuffer, 0);
             gl.BindVertexArray(0);
-            gl.BindBuffer(GLEnum.ElementArrayBuffer, 0);
+
+            gl.PointSize(10.0f);
         }
 
 
@@ -148,9 +115,9 @@ namespace Silk.Net.OpenGLtest1
 
             shader.setUniform("time", time);
             shader.setUniform("perspective", player.camera.getPerspectiveMatrix());
-            shader.setUniform("viewport", player.camera.getViewportMatrix());
+            shader.setUniform("projection", player.camera.getViewportMatrix());
 
-            gl.DrawElements(GLEnum.Triangles, 36, DrawElementsType.UnsignedInt, null);
+            gl.DrawArrays(GLEnum.Points, 0, 2);
             gl.BindVertexArray(0);
         
         }

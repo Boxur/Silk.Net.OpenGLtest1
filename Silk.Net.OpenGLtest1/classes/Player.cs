@@ -16,7 +16,7 @@ namespace Silk.Net.OpenGLtest1.classes
         public void HandleMouseEvents(Vector2 mousePos, Vector2 screenSize)
         {
 
-            this.camera.pitch += (mousePos.Y - screenSize.Y / 2) * -mouseSensitivity.Y;
+            this.camera.pitch += (mousePos.Y - screenSize.Y / 2) * mouseSensitivity.Y;
             this.camera.yaw += (mousePos.X - screenSize.X / 2) * mouseSensitivity.X;
             if (this.camera.pitch < 0.0001f) this.camera.pitch = 0.0001f;
             if (this.camera.pitch > 179.9999f) this.camera.pitch = 179.9999f;
@@ -35,8 +35,8 @@ namespace Silk.Net.OpenGLtest1.classes
             if (primaryKeyboard.IsKeyPressed(Key.D)) move += this.camera.right;
             move.Y = 0;
             if (move != Vector3.Zero) move = Vector3.Normalize(move);
-            if (primaryKeyboard.IsKeyPressed(Key.ShiftLeft)) move.Y += 1;
-            if (primaryKeyboard.IsKeyPressed(Key.Space)) move.Y -= 1;
+            if (primaryKeyboard.IsKeyPressed(Key.ShiftLeft)) move.Y -= 1;
+            if (primaryKeyboard.IsKeyPressed(Key.Space)) move.Y += 1;
             if (primaryKeyboard.IsKeyPressed(Key.Escape)) window.Close();
             if (move != Vector3.Zero) move = Vector3.Normalize(move) * (float)deltaTime * 3;
             this.camera.position += move;
