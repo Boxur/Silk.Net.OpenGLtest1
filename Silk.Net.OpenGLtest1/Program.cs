@@ -60,13 +60,26 @@ namespace Silk.Net.OpenGLtest1
 
             gl.ClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 
-            shader = new ShaderHelper(gl, ".\\shaders\\VertexShader.glsl",".\\shaders\\GeometryShader.glsl", ".\\shaders\\FragmentShader.glsl");
+            shader = new ShaderHelper(
+                                    gl,
+                                    [
+                                        ".\\shaders\\VertexShader.glsl",
+                                        ".\\shaders\\CubeConstructor.glsl",
+                                        ".\\shaders\\FragmentShader.glsl"
+                                    ],
+                                    [
+                                        ShaderType.VertexShader,
+                                        ShaderType.GeometryShader,
+                                        ShaderType.FragmentShader
+                                    ]
+                                    );
             
             int[] blocks =
             {
 
-                 0,0,0,1,0,0,
-                 1,0,0,0,1,0,
+                -1,0,0,0,
+                 1,0,0,1,
+                 0,1,0,1
 
             };
 
@@ -81,10 +94,10 @@ namespace Silk.Net.OpenGLtest1
             }
 
 
-            gl.VertexAttribPointer(0, 3, GLEnum.Int, false, 6 * sizeof(int), 0);
+            gl.VertexAttribPointer(0, 3, GLEnum.Int, false, 4 * sizeof(int), 0);
             gl.EnableVertexAttribArray(0);
 
-            gl.VertexAttribPointer(1, 3, GLEnum.Int, false, 6 * sizeof(int), 3 * sizeof(int));
+            gl.VertexAttribPointer(1, 1, GLEnum.Int, false, 4 * sizeof(int), 3 * sizeof(int));
             gl.EnableVertexAttribArray(1);
 
             gl.BindBuffer(GLEnum.ArrayBuffer, 0);
@@ -109,6 +122,8 @@ namespace Silk.Net.OpenGLtest1
         private static unsafe void OnRender(double deltaTime)
         {
             gl.Enable(EnableCap.DepthTest);
+            gl.Enable(EnableCap.CullFace);
+            gl.CullFace(GLEnum.Back);
             gl.Clear(ClearBufferMask.ColorBufferBit|ClearBufferMask.DepthBufferBit);
 
             gl.BindVertexArray(vao);       
@@ -117,7 +132,7 @@ namespace Silk.Net.OpenGLtest1
             shader.setUniform("perspective", player.camera.getPerspectiveMatrix());
             shader.setUniform("projection", player.camera.getViewportMatrix());
 
-            gl.DrawArrays(GLEnum.Points, 0, 2);
+            gl.DrawArrays(GLEnum.Points, 0, 3);
             gl.BindVertexArray(0);
         
         }

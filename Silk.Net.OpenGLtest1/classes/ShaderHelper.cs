@@ -9,16 +9,29 @@ namespace Silk.Net.OpenGLtest1.classes
         private GL gl;
         private uint program;
 
-        public ShaderHelper(GL gl,string vertexShaderPath,string geometryShaderPath,string fragmentShaderPath)
+        public ShaderHelper(GL gl,string[] paths, ShaderType[] types)
         {
             this.gl = gl;
             program = this.gl.CreateProgram();
 
-            uint vShader = generateShader(vertexShaderPath,ShaderType.VertexShader);
-            uint gShader = generateShader(geometryShaderPath, ShaderType.GeometryShader);
-            uint fShader = generateShader(fragmentShaderPath,ShaderType.FragmentShader);
+            if (paths.Length != types.Length) throw new ArgumentException("paths hould have as many items as types");
+            uint[] shaders = new uint[types.Length];
+            for (int i = 0; i < types.Length; i++)
+            {
+                shaders[i] = generateShader(paths[i], types[i]);
 
-            loadShaders(vShader,fShader);
+            }           
+            
+            gl.LinkProgram(program);
+            gl.UseProgram(program);
+            for (int i = 0; i < types.Length; i++)
+            {
+                gl.DetachShader(program, shaders[i]);
+                gl.DeleteShader(shaders[i]);
+            }
+
+
+
         }
 
         private uint generateShader(string filePath, ShaderType shaderType)
@@ -36,16 +49,6 @@ namespace Silk.Net.OpenGLtest1.classes
             gl.AttachShader(program, current);
 
             return current;
-        }
-
-        private void loadShaders(uint vShader,uint fShader)
-        {
-            gl.LinkProgram(program);
-            gl.DetachShader(program, vShader);
-            gl.DetachShader(program,fShader);
-            gl.DeleteShader(vShader);
-            gl.DeleteShader(fShader);
-            gl.UseProgram(program);
         }
 
         public void setUniform(string name, int value)

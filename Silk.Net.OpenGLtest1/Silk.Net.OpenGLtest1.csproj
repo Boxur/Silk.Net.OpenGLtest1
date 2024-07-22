@@ -16,7 +16,7 @@
     <None Update="shaders\FragmentShader.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="shaders\GeometryShader.glsl">
+    <None Update="shaders\CubeConstructor.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="shaders\VertexShader.glsl">

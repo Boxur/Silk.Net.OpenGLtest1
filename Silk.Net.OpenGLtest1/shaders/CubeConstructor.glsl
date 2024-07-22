@@ -10,25 +10,29 @@ out vec3 color;
 
 in DATA
 {
-	vec3 color;
+	uint blockID;
 
 } data_in[];
 
-void makeACube(ivec3 pos)
+void makeACube(ivec3 pos,uint id)
 {
-	color = data_in[0].color;
+	vec3[2] colors;
+	colors[0] = vec3(0.0f,0.75f,0.0f);
+	colors[1] = vec3(0.3f,0.15f,0.0f);
+	color = colors[id];
+
 	gl_Position = perspective*projection*(vec4(pos+vec3(0.,0.,0.),1.));		//000
 	gl_Position.y*=-1;
 	EmitVertex();
-
+	
 	gl_Position = perspective*projection*(vec4(pos+vec3(1.,0.,0.),1.));		//100
 	gl_Position.y*=-1;
 	EmitVertex();
-
+	
 	gl_Position = perspective*projection*(vec4(pos+vec3(0.,1.,0.),1.));		//010
 	gl_Position.y*=-1;
 	EmitVertex();
-
+	
 	gl_Position = perspective*projection*(vec4(pos+vec3(1.,1.,0.),1.));		//110
 	gl_Position.y*=-1;
 	EmitVertex();
@@ -79,5 +83,5 @@ void makeACube(ivec3 pos)
 void main()
 {
 	ivec3 pos = ivec3(gl_in[0].gl_Position);
-	makeACube(pos);
+	makeACube(pos,data_in[0].blockID);
 }
