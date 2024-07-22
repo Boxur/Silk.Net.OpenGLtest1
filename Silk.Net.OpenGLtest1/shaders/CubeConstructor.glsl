@@ -1,4 +1,4 @@
-#version 330
+#version 410
 
 layout(points) in;
 layout(triangle_strip,max_vertices=14) out;
@@ -10,16 +10,19 @@ out vec3 color;
 
 in DATA
 {
-	uint blockID;
+	int blockID;
 
 } data_in[];
 
-void makeACube(ivec3 pos,uint id)
+void makeACube(ivec3 pos,int id)
 {
 	vec3[2] colors;
-	colors[0] = vec3(0.0f,0.75f,0.0f);
-	colors[1] = vec3(0.3f,0.15f,0.0f);
+	colors[0]=vec3(0.0f,0.75f,0.0f);
+	colors[1]=vec3(0.3f,0.15f,0.0f);
+
 	color = colors[id];
+		
+	
 
 	gl_Position = perspective*projection*(vec4(pos+vec3(0.,0.,0.),1.));		//000
 	gl_Position.y*=-1;
